@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btx.dao.PersonDao">
+	<insert id="addPerson" parameterType="com.btx.domain.Person">
+		INSERT INTO PERSON VALUES(#{name},#{age})
+	</insert>
+	
+	<select id="getAllPerson" resultType="com.btx.domain.Person">
+		SELECT * FROM PERSON
+	</select>
+</mapper>
