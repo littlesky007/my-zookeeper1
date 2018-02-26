@@ -16,6 +16,7 @@ import org.I0Itec.zkclient.ZkClient;
  */
 public class ImproveLock implements Lock{
 
+	private volicite boolean flage=false;
 	private CountDownLatch cdl;
 	private String beforePath;
 	private String currentPath;
@@ -49,9 +50,11 @@ public class ImproveLock implements Lock{
 
 			@Override
 			public void handleDataDeleted(String dataPath) throws Exception {
-				System.out.println(dataPath+"½ÚµãÒÑ¾­ÊÍ·ÅËøÁË");
+				System.out.println(dataPath+"èŠ‚ç‚¹å·²ç»é‡Šæ”¾é”äº†");
 				if(cdl != null) {
 					cdl.countDown();
+					//æ ‡è®°ç°æœ‰çº¿ç¨‹é‡Šæ”¾é”äº†ã€‚ã€‚ã€‚ã€‚
+					flage=true;
 				}
 				
 			}
@@ -59,11 +62,13 @@ public class ImproveLock implements Lock{
 			
 		};
 		this.client.subscribeDataChanges(beforePath, listener);
-		//Èç¹ûÇ°ÃæÓĞ½Úµã´æÔÚ£¬¾ÍµÈ´ı
+		//å¦‚æœå‰é¢æœ‰èŠ‚ç‚¹å­˜åœ¨ï¼Œå°±ç­‰å¾…
 		if (this.client.exists(beforePath)) {
 			cdl = new CountDownLatch(1);
 			try {
-				cdl.await();
+				//å¦‚æœå…ˆåœ¨é˜»å¡å‰ï¼Œæœ‰çº¿ç¨‹é‡Šæ”¾äº†é”ï¼Œè¿™é‡Œå°±ä¸é˜»å¡äº†ã€‚ã€‚ã€‚
+				if(!falge)
+				   cdl.await();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -76,12 +81,12 @@ public class ImproveLock implements Lock{
 		if(!tryLock())
 		{
 			waitForLock();
-			//ÈÃµ±Ç°½Úµã·ÅÔÚchildµÄµÚÒ»Î»ÖÃ
+			//è®©å½“å‰èŠ‚ç‚¹æ”¾åœ¨childçš„ç¬¬ä¸€ä½ç½®
 			lock();
 		}
 		else
 		{
-			System.out.println("»ñÈ¡Ëø");
+			System.out.println("è·å–é”");
 		}
 
 	}
@@ -94,7 +99,7 @@ public class ImproveLock implements Lock{
 
 	@Override
 	public boolean tryLock() {
-		//Èç¹ûµ±Ç°Â·¾¶²»´æÔÚ½Úµã£¬¾Í´´½¨Ë³Ğò½Úµã
+		//å¦‚æœå½“å‰è·¯å¾„ä¸å­˜åœ¨èŠ‚ç‚¹ï¼Œå°±åˆ›å»ºé¡ºåºèŠ‚ç‚¹
 		if(currentPath == null)
 		{
 			currentPath = client.createEphemeralSequential(LOCK_PATH+SPLIT, "lock");
@@ -102,11 +107,11 @@ public class ImproveLock implements Lock{
 		List<String> childPath = client.getChildren(LOCK_PATH);
 		Collections.sort(childPath);
 
-		//Èç¹ûµ±½ÚµãÊÇµÚÒ»¸ö½Úµã£¬¾Í»ñÈ¡Ëø
+		//å¦‚æœå½“èŠ‚ç‚¹æ˜¯ç¬¬ä¸€ä¸ªèŠ‚ç‚¹ï¼Œå°±è·å–é”
 		if(currentPath.equals(LOCK_PATH+SPLIT + childPath.get(0))) {
 			return true;
 		}
-		//²»È»¾ÍÖ¸ÏòÇ°ÃæÒ»¸ö½Úµã
+		//ä¸ç„¶å°±æŒ‡å‘å‰é¢ä¸€ä¸ªèŠ‚ç‚¹
 		else
 		{
 			int index = Collections.binarySearch(childPath, currentPath.substring(LOCK_PATH.length()+1));
